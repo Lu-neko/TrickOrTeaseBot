@@ -67,6 +67,7 @@ After this, you can fill up the .env :
 TOKEN=YOUR_TOKEN_FOR_THE_API
 DISCORD_TOKEN=YOUR_DISCORD_BOT_TOKEN
 GUILD=YOUR_GUILD
+SERVER=YOUR_BACKEND_ADRESS
 ```
 
  and then start the bot with :
@@ -86,5 +87,6 @@ And after this step, the bot should be running correctly.
 * [x] Leaderboard and Rank
 * [x] Common monsters vibing everyone when claimed
 * [x] Rare monsters give a link to the control page
-* [ ] Put the api configuration in the .env file
-* [ ] Custom emojis for the views
+* [x] Save configuration
+* [x] Put the api configuration in the .env file
+* [x] Custom emojis for the views

@@ -1,5 +1,6 @@
 import discord
 import json
+import random
 
 from . import add_user_candy
 
@@ -24,7 +25,7 @@ class Vibrate(discord.ui.View):
 
         await interaction.response.send_message("Candy claimed!", ephemeral=True)
 
-        await self.websocket.send(json.dumps({"type":"vibe", "value":15}))
+        await self.websocket.send(json.dumps({"type":"vibe", "value":random.randint(3, 20), "time":3}))
 
     async def cancel(self):
         if self.websocket:

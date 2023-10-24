@@ -11,6 +11,9 @@ import json
 with open("candies.json") as file:
     users_candies = json.load(file)
 
+with open("config.json") as file:
+    config = json.load(file)
+
 def add_user_candy(user_id):
     users_candies[str(user_id)] = users_candies.get(str(user_id), 0)+1
 
@@ -20,12 +23,13 @@ dotenv.load_dotenv()
 
 GUILD = discord.Object(id=os.getenv("GUILD"))
 TOKEN = os.getenv("TOKEN")
+SERVER = os.getenv("SERVER")
 
 monsters = {"common":{}, "rare":{}}
 
 for root, dirs, files in os.walk("monsters"):
     if files:
-        _, category, monster = root.split("\\")
+        _, category, monster = root.split("/")
         monsters[category][monster] = files
 
 class TrickTeaseBot(discord.Client):
@@ -34,15 +38,17 @@ class TrickTeaseBot(discord.Client):
         self.tree = app_commands.CommandTree(self)
         self.enabled = False
         self.channel = None
-        self.min_timing = 5
-        self.max_timing = 10
-        self.rare_chance = 0.1
+        self.min_timing = config.get("min_timing", 5)
+        self.max_timing = config.get("max_timing", 10)
+        self.rare_chance = config.get("rare_chance", 0.2)
         self.current = 0
 
         self.current_view = None
         self.current_message = None
 
     async def on_ready(self):
+        if config.get("channel"):
+            self.channel = client.get_channel(int(config.get("channel")))
         self.verify_time.start()
         self.save_candies.start()
         self.session = aiohttp.ClientSession()
@@ -57,14 +63,14 @@ class TrickTeaseBot(discord.Client):
             await self.current_message.edit(view=None)
 
     async def send_monster(self):
-        async with client.session.post("http://localhost:5000/api/genToken", json={"token": TOKEN}) as r:
+        async with client.session.post(f"https://{SERVER}/api/genToken", json={"token": TOKEN}) as r:
             result = await r.json()
         
         generated_token = result["token"]
 
         if random.random() >= self.rare_chance:
             start_path = "common"
-            socket = await websockets.connect(f"ws://localhost:5000/vibe/{generated_token}")
+            socket = await websockets.connect(f"wss://{SERVER}/vibe/{generated_token}")
 
             self.current_view = view = Vibrate(socket)
 
@@ -73,7 +79,7 @@ class TrickTeaseBot(discord.Client):
         else:
             start_path = "rare"
 
-            view = RemoteControl(f"http://localhost:5000/control/{generated_token}")
+            view = RemoteControl(f"https://{SERVER}/control/{generated_token}")
 
             embed = discord.Embed(color=4579838, title="A *Rare* monster appeared!", description="A rare monster appeared! "+
                 "They have the remote of everyone connected on them, be the first one to steal them to be able to control everyone!")
@@ -114,7 +120,7 @@ class TrickTeaseBot(discord.Client):
         with open("candies.json", "w") as file:
             json.dump(users_candies, file)
 
-        await client.session.post("http://localhost:5000/api/genToken", json={"token": TOKEN})
+        await client.session.post(f"https://{SERVER}/api/genToken", json={"token": TOKEN})
 
         await self.cancel_previous()
 

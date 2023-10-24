@@ -2,11 +2,11 @@ import discord
 from discord import app_commands
 import heapq
 
-from . import client, users_candies
+from . import client, users_candies, SERVER
 
 @discord.app_commands.command(description="Connect your toys")
 async def connect(interaction: discord.Interaction):
-    async with interaction.client.session.get("http://localhost:5000/api/get_qrcode", params={"user_id": interaction.user.id}) as r:
+    async with interaction.client.session.get(f"https://{SERVER}/api/get_qrcode", params={"user_id": interaction.user.id}) as r:
         result = await r.json()
 
     embed = discord.Embed(color=4579838, title="Connect your toy")
